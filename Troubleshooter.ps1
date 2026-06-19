@@ -1,0 +1,6 @@
+#requires -Version 5.1
+<# Created by Dewald Pretorius #>
+param([string]$OutputPath)
+if(-not $OutputPath){$OutputPath="$([Environment]::GetFolderPath('Desktop'))\Store_Update_Reports"};New-Item $OutputPath -ItemType Directory -Force|Out-Null
+$services=Get-Service InstallService,ClipSVC,AppXSvc,BITS,wuauserv -ErrorAction SilentlyContinue|Select-Object Name,Status,StartType;$updates=Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-AppXDeploymentServer/Operational';StartTime=(Get-Date).AddDays(-5)} -ErrorAction SilentlyContinue|Select-Object -First 60 TimeCreated,Id,LevelDisplayName,Message
+@('MICROSOFT STORE APP UPDATE TROUBLESHOOTER','Created by Dewald Pretorius',"Generated: $(Get-Date)",($services|Format-Table -AutoSize|Out-String -Width 220),($updates|Format-List|Out-String -Width 220),'Guidance: verify services, Store account, package dependencies, update policies, date and time, network access, pending restart, and available disk space.')|Set-Content (Join-Path $OutputPath 'Report.txt') -Encoding UTF8
